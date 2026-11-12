@@ -289,6 +289,30 @@ class QuizGame:
             message += ")"
         print(message)
         print(f"🎮 지금까지 플레이한 게임: {len(self.history)}회")
+        # ==================================================
+    # 5. 퀴즈 삭제
+    # ==================================================
+    def delete_quiz(self):
+        """번호를 입력받아 퀴즈를 삭제하고 파일에 반영한다."""
+        if not self.quizzes:
+            print("📭 삭제할 퀴즈가 없습니다.")
+            return
+        self.list_quizzes()
+        number = self.input_number(
+            f"삭제할 퀴즈 번호 (1-{len(self.quizzes)}, 취소는 0): ", 0, len(self.quizzes)
+        )
+        if number == 0:
+            print("↩️ 삭제를 취소했습니다.")
+            return
+        target = self.quizzes[number - 1]
+        if not self.input_yes_no(f"'{target.question}' 퀴즈를 삭제할까요? (y/n): "):
+            print("↩️ 삭제를 취소했습니다.")
+            return
+        self.quizzes.pop(number - 1)
+        if self.save():
+            print("🗑️ 퀴즈를 삭제했습니다.")
+        else:
+            print("🗑️ 퀴즈를 삭제했습니다. (단, 파일 저장에 실패했습니다)")
     # ==================================================
     # 파일 저장 / 불러오기 (state.json)
     # ==================================================
