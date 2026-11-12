@@ -240,6 +240,22 @@ class QuizGame:
             print("✅ 퀴즈가 추가되었습니다!")
         else:
             print("✅ 퀴즈가 추가되었습니다. (단, 파일 저장에 실패해 종료하면 사라질 수 있습니다)")
+        # ==================================================
+    # 3. 퀴즈 목록
+    # ==================================================
+    def list_quizzes(self):
+        """등록된 퀴즈 목록을 출력한다."""
+        if not self.quizzes:
+            print("📭 등록된 퀴즈가 없습니다.")
+            return
+        print(f"📋 등록된 퀴즈 목록 (총 {len(self.quizzes)}개)")
+        print()
+        print(THIN_LINE)
+        for number, quiz in enumerate(self.quizzes, start=1):
+            mark = " 💡" if quiz.has_hint() else ""
+            print(f"[{number}] {quiz.question}{mark}")
+        print(THIN_LINE)
+        print("(💡 표시는 힌트가 있는 문제)")
     # ==================================================
     # 파일 저장 / 불러오기 (state.json)
     # ==================================================
