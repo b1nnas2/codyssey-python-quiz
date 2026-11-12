@@ -127,3 +127,6 @@ codyssey-python-quiz/
 | 퀴즈 추가 | 점수 확인 |
 |---|---|
 | ![퀴즈 추가](docs/screenshots/add_quiz.png) | ![점수 확인](docs/screenshots/score.png) |
+
+## 8. Git 실습 기록
+- clone한 저장소에서 README를 수정해 push하고, 원래 작업 폴더에서 pull로 반영을 확인했습니다.
