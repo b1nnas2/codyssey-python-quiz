@@ -36,6 +36,7 @@ class QuizGame:
         self.best_record = None       # dict | None: 최고 점수 기록의 정답 수/문제 수/힌트 수
         self.history = []             # list[dict]: 모든 게임 기록
         self.is_loaded = False        # 불러오기가 끝나기 전에는 저장하지 않기 위한 표시
+
     # ==================================================
     # 실행 흐름
     # ==================================================
@@ -112,6 +113,7 @@ class QuizGame:
             if text in ("n", "no", "아니오", "ㄴ"):
                 return False
             print("⚠️ y 또는 n을 입력하세요.")
+
     def input_answer(self, quiz):
         """문제의 정답 번호를 입력받는다. 'h'를 입력하면 힌트를 보여 준다.
 
@@ -149,7 +151,7 @@ class QuizGame:
     # 1. 퀴즈 풀기
     # ==================================================
     def play_quiz(self):
-        """퀴즈를 출제하고 결과를 보여 준다."""
+        """퀴즈를 출제하고 결과를 보여 준 뒤 최고 점수/기록을 갱신한다."""
         if not self.quizzes:
             print("📭 등록된 퀴즈가 없습니다. 먼저 '퀴즈 추가'로 퀴즈를 등록하세요.")
             return
@@ -215,49 +217,8 @@ class QuizGame:
         else:
             print(f"현재 최고 점수: {self.best_score}점")
         print(LINE)
-            # ==================================================
-    # 2. 퀴즈 추가
+
     # ==================================================
-    def add_quiz(self):
-        """새 퀴즈를 입력받아 등록하고 파일에 저장한다."""
-        print("📌 새로운 퀴즈를 추가합니다.")
-        print()
-        question = self.input_text("문제를 입력하세요: ")
-
-        choices = []
-        while len(choices) < Quiz.CHOICE_COUNT:
-            choice = self.input_text(f"선택지 {len(choices) + 1}: ")
-            if choice in choices:
-                print("⚠️ 이미 입력한 선택지와 같습니다. 다른 내용을 입력하세요.")
-                continue
-            choices.append(choice)
-
-        answer = self.input_number("정답 번호 (1-4): ", 1, Quiz.CHOICE_COUNT)
-        hint = self.input_text("힌트 (없으면 그냥 Enter): ", allow_empty=True)
-
-        self.quizzes.append(Quiz(question, choices, answer, hint or None))
-        print()
-        if self.save():
-            print("✅ 퀴즈가 추가되었습니다!")
-        else:
-            print("✅ 퀴즈가 추가되었습니다. (단, 파일 저장에 실패해 종료하면 사라질 수 있습니다)")
-        # ==================================================
-    # 3. 퀴즈 목록
-    # ==================================================
-    def list_quizzes(self):
-        """등록된 퀴즈 목록을 출력한다."""
-        if not self.quizzes:
-            print("📭 등록된 퀴즈가 없습니다.")
-            return
-        print(f"📋 등록된 퀴즈 목록 (총 {len(self.quizzes)}개)")
-        print()
-        print(THIN_LINE)
-        for number, quiz in enumerate(self.quizzes, start=1):
-            mark = " 💡" if quiz.has_hint() else ""
-            print(f"[{number}] {quiz.question}{mark}")
-        print(THIN_LINE)
-        print("(💡 표시는 힌트가 있는 문제)")
-        # ==================================================
     # 4. 점수 확인 / 6. 게임 기록
     # ==================================================
     def record_game(self, count, correct_count, hint_count, score):
@@ -289,7 +250,67 @@ class QuizGame:
             message += ")"
         print(message)
         print(f"🎮 지금까지 플레이한 게임: {len(self.history)}회")
-        # ==================================================
+
+    def show_history(self):
+        """최근 게임 기록을 출력한다."""
+        if not self.history:
+            print("📭 아직 게임 기록이 없습니다.")
+            return
+        recent = self.history[-self.HISTORY_SHOW_COUNT:]
+        print(f"📜 게임 기록 (전체 {len(self.history)}회 중 최근 {len(recent)}회)")
+        print(THIN_LINE)
+        for record in reversed(recent):
+            print(
+                f"{record['played_at']} | {record['total']}문제 중 {record['correct']}개 정답"
+                f" | 힌트 {record['hints_used']}회 | {record['score']}점"
+            )
+        print(THIN_LINE)
+
+    # ==================================================
+    # 2. 퀴즈 추가
+    # ==================================================
+    def add_quiz(self):
+        """새 퀴즈를 입력받아 등록하고 파일에 저장한다."""
+        print("📌 새로운 퀴즈를 추가합니다.")
+        print()
+        question = self.input_text("문제를 입력하세요: ")
+
+        choices = []
+        while len(choices) < Quiz.CHOICE_COUNT:
+            choice = self.input_text(f"선택지 {len(choices) + 1}: ")
+            if choice in choices:
+                print("⚠️ 이미 입력한 선택지와 같습니다. 다른 내용을 입력하세요.")
+                continue
+            choices.append(choice)
+
+        answer = self.input_number("정답 번호 (1-4): ", 1, Quiz.CHOICE_COUNT)
+        hint = self.input_text("힌트 (없으면 그냥 Enter): ", allow_empty=True)
+
+        self.quizzes.append(Quiz(question, choices, answer, hint or None))
+        print()
+        if self.save():
+            print("✅ 퀴즈가 추가되었습니다!")
+        else:
+            print("✅ 퀴즈가 추가되었습니다. (단, 파일 저장에 실패해 종료하면 사라질 수 있습니다)")
+
+    # ==================================================
+    # 3. 퀴즈 목록
+    # ==================================================
+    def list_quizzes(self):
+        """등록된 퀴즈 목록을 출력한다."""
+        if not self.quizzes:
+            print("📭 등록된 퀴즈가 없습니다.")
+            return
+        print(f"📋 등록된 퀴즈 목록 (총 {len(self.quizzes)}개)")
+        print()
+        print(THIN_LINE)
+        for number, quiz in enumerate(self.quizzes, start=1):
+            mark = " 💡" if quiz.has_hint() else ""
+            print(f"[{number}] {quiz.question}{mark}")
+        print(THIN_LINE)
+        print("(💡 표시는 힌트가 있는 문제)")
+
+    # ==================================================
     # 5. 퀴즈 삭제
     # ==================================================
     def delete_quiz(self):
@@ -313,20 +334,7 @@ class QuizGame:
             print("🗑️ 퀴즈를 삭제했습니다.")
         else:
             print("🗑️ 퀴즈를 삭제했습니다. (단, 파일 저장에 실패했습니다)")
-    def show_history(self):
-        """최근 게임 기록을 출력한다."""
-        if not self.history:
-            print("📭 아직 게임 기록이 없습니다.")
-            return
-        recent = self.history[-self.HISTORY_SHOW_COUNT:]
-        print(f"📜 게임 기록 (전체 {len(self.history)}회 중 최근 {len(recent)}회)")
-        print(THIN_LINE)
-        for record in reversed(recent):
-            print(
-                f"{record['played_at']} | {record['total']}문제 중 {record['correct']}개 정답"
-                f" | 힌트 {record['hints_used']}회 | {record['score']}점"
-            )
-        print(THIN_LINE)
+
     # ==================================================
     # 파일 저장 / 불러오기 (state.json)
     # ==================================================
