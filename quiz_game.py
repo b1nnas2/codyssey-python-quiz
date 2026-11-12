@@ -177,6 +177,7 @@ class QuizGame:
 
         score = self.calculate_score(earned, count)
         self.show_result(count, correct_count, hint_count, score)
+        self.record_game(count, correct_count, hint_count, score)
 
     def ask_question_count(self):
         """몇 문제를 풀지 입력받는다."""
@@ -256,6 +257,38 @@ class QuizGame:
             print(f"[{number}] {quiz.question}{mark}")
         print(THIN_LINE)
         print("(💡 표시는 힌트가 있는 문제)")
+        # ==================================================
+    # 4. 점수 확인 / 6. 게임 기록
+    # ==================================================
+    def record_game(self, count, correct_count, hint_count, score):
+        """게임 기록을 추가하고, 최고 점수와 비교해 갱신한 뒤 저장한다."""
+        self.history.append(
+            {
+                "played_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                "total": count,
+                "correct": correct_count,
+                "hints_used": hint_count,
+                "score": score,
+            }
+        )
+        if self.best_score is None or score > self.best_score:
+            self.best_score = score
+            self.best_record = {"total": count, "correct": correct_count, "hints_used": hint_count}
+        self.save()
+
+    def show_score(self):
+        """최고 점수를 출력한다."""
+        if self.best_score is None:
+            print("📭 아직 퀴즈를 풀지 않았습니다. '퀴즈 풀기'로 도전해 보세요!")
+            return
+        message = f"🏆 최고 점수: {self.best_score}점"
+        if self.best_record:
+            message += f" ({self.best_record['total']}문제 중 {self.best_record['correct']}문제 정답"
+            if self.best_record.get("hints_used"):
+                message += f", 힌트 {self.best_record['hints_used']}회"
+            message += ")"
+        print(message)
+        print(f"🎮 지금까지 플레이한 게임: {len(self.history)}회")
     # ==================================================
     # 파일 저장 / 불러오기 (state.json)
     # ==================================================
