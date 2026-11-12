@@ -313,6 +313,20 @@ class QuizGame:
             print("🗑️ 퀴즈를 삭제했습니다.")
         else:
             print("🗑️ 퀴즈를 삭제했습니다. (단, 파일 저장에 실패했습니다)")
+    def show_history(self):
+        """최근 게임 기록을 출력한다."""
+        if not self.history:
+            print("📭 아직 게임 기록이 없습니다.")
+            return
+        recent = self.history[-self.HISTORY_SHOW_COUNT:]
+        print(f"📜 게임 기록 (전체 {len(self.history)}회 중 최근 {len(recent)}회)")
+        print(THIN_LINE)
+        for record in reversed(recent):
+            print(
+                f"{record['played_at']} | {record['total']}문제 중 {record['correct']}개 정답"
+                f" | 힌트 {record['hints_used']}회 | {record['score']}점"
+            )
+        print(THIN_LINE)
     # ==================================================
     # 파일 저장 / 불러오기 (state.json)
     # ==================================================
