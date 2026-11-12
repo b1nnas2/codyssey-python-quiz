@@ -112,6 +112,108 @@ class QuizGame:
             if text in ("n", "no", "아니오", "ㄴ"):
                 return False
             print("⚠️ y 또는 n을 입력하세요.")
+    def input_answer(self, quiz):
+        """문제의 정답 번호를 입력받는다. 'h'를 입력하면 힌트를 보여 준다.
+
+        반환값: (입력한 번호, 힌트 사용 여부)
+        """
+        used_hint = False
+        guide = "정답 입력 (1-4"
+        guide += ", 힌트: h): " if quiz.has_hint() else "): "
+
+        while True:
+            text = input(guide).strip()
+            if not text:
+                print("⚠️ 입력이 비어 있습니다. 1-4 사이의 숫자를 입력하세요.")
+                continue
+            if text.lower() in self.HINT_KEYS:
+                if not quiz.has_hint():
+                    print("ℹ️ 이 문제는 힌트가 없습니다.")
+                elif used_hint:
+                    print(f"💡 힌트: {quiz.hint}")
+                else:
+                    used_hint = True
+                    print(f"💡 힌트: {quiz.hint}  (이 문제는 맞혀도 점수가 절반만 인정됩니다)")
+                continue
+            try:
+                number = int(text)
+            except ValueError:
+                print("⚠️ 잘못된 입력입니다. 1-4 사이의 숫자를 입력하세요.")
+                continue
+            if not 1 <= number <= Quiz.CHOICE_COUNT:
+                print("⚠️ 잘못된 입력입니다. 1-4 사이의 숫자를 입력하세요.")
+                continue
+            return number, used_hint
+
+    # ==================================================
+    # 1. 퀴즈 풀기
+    # ==================================================
+    def play_quiz(self):
+        """퀴즈를 출제하고 결과를 보여 준다."""
+        if not self.quizzes:
+            print("📭 등록된 퀴즈가 없습니다. 먼저 '퀴즈 추가'로 퀴즈를 등록하세요.")
+            return
+
+        count = self.ask_question_count()
+        selected = random.sample(self.quizzes, count)  # 랜덤 출제 (중복 없이 섞어서 뽑기)
+
+        print()
+        print(f"📝 퀴즈를 시작합니다! (총 {count}문제)")
+        print("   힌트가 필요하면 h 를 입력하세요. (힌트 사용 시 해당 문제 점수 절반)")
+
+        correct_count = 0
+        hint_count = 0
+        earned = 0.0  # 문제마다 받은 점수 비율의 합 (정답 1.0, 힌트 정답 0.5, 오답 0)
+
+        for number, quiz in enumerate(selected, start=1):
+            print()
+            print(THIN_LINE)
+            is_correct, used_hint = self.ask_one_question(quiz, number)
+            if used_hint:
+                hint_count += 1
+            if is_correct:
+                correct_count += 1
+                earned += 0.5 if used_hint else 1.0
+
+        score = self.calculate_score(earned, count)
+        self.show_result(count, correct_count, hint_count, score)
+
+    def ask_question_count(self):
+        """몇 문제를 풀지 입력받는다."""
+        total = len(self.quizzes)
+        if total == 1:
+            return 1
+        return self.input_number(f"몇 문제를 풀까요? (1-{total}): ", 1, total)
+
+    def ask_one_question(self, quiz, number):
+        """문제 하나를 출제하고 (정답 여부, 힌트 사용 여부)를 반환한다."""
+        quiz.display(number)
+        user_answer, used_hint = self.input_answer(quiz)
+        if quiz.is_correct(user_answer):
+            if used_hint:
+                print("✅ 정답입니다! (힌트 사용: 점수 절반)")
+            else:
+                print("✅ 정답입니다!")
+            return True, used_hint
+        print(f"❌ 오답입니다. 정답은 {quiz.answer}번 '{quiz.correct_choice_text()}' 입니다.")
+        return False, used_hint
+
+    def calculate_score(self, earned, count):
+        """100점 만점 점수를 계산한다."""
+        return round(earned / count * 100)
+
+    def show_result(self, count, correct_count, hint_count, score):
+        """퀴즈 결과를 출력한다."""
+        print()
+        print(LINE)
+        print(f"🏆 결과: {count}문제 중 {correct_count}문제 정답! ({score}점)")
+        if hint_count:
+            print(f"💡 힌트 사용: {hint_count}회")
+        if self.best_score is None or score > self.best_score:
+            print("🎉 새로운 최고 점수입니다!")
+        else:
+            print(f"현재 최고 점수: {self.best_score}점")
+        print(LINE)
     # ==================================================
     # 파일 저장 / 불러오기 (state.json)
     # ==================================================
