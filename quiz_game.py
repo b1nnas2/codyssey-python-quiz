@@ -214,6 +214,32 @@ class QuizGame:
         else:
             print(f"현재 최고 점수: {self.best_score}점")
         print(LINE)
+            # ==================================================
+    # 2. 퀴즈 추가
+    # ==================================================
+    def add_quiz(self):
+        """새 퀴즈를 입력받아 등록하고 파일에 저장한다."""
+        print("📌 새로운 퀴즈를 추가합니다.")
+        print()
+        question = self.input_text("문제를 입력하세요: ")
+
+        choices = []
+        while len(choices) < Quiz.CHOICE_COUNT:
+            choice = self.input_text(f"선택지 {len(choices) + 1}: ")
+            if choice in choices:
+                print("⚠️ 이미 입력한 선택지와 같습니다. 다른 내용을 입력하세요.")
+                continue
+            choices.append(choice)
+
+        answer = self.input_number("정답 번호 (1-4): ", 1, Quiz.CHOICE_COUNT)
+        hint = self.input_text("힌트 (없으면 그냥 Enter): ", allow_empty=True)
+
+        self.quizzes.append(Quiz(question, choices, answer, hint or None))
+        print()
+        if self.save():
+            print("✅ 퀴즈가 추가되었습니다!")
+        else:
+            print("✅ 퀴즈가 추가되었습니다. (단, 파일 저장에 실패해 종료하면 사라질 수 있습니다)")
     # ==================================================
     # 파일 저장 / 불러오기 (state.json)
     # ==================================================
