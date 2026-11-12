@@ -36,8 +36,82 @@ class QuizGame:
         self.best_record = None       # dict | None: 최고 점수 기록의 정답 수/문제 수/힌트 수
         self.history = []             # list[dict]: 모든 게임 기록
         self.is_loaded = False        # 불러오기가 끝나기 전에는 저장하지 않기 위한 표시
+    # ==================================================
+    # 실행 흐름
+    # ==================================================
+    def run(self):
+        """프로그램 시작: 데이터를 불러오고 메뉴 반복을 실행한다."""
+        print(LINE)
+        print("        🎯 나만의 퀴즈 게임 🎯")
+        print("      (주제: Python & Git 기초)")
+        print(LINE)
+        self.load()
 
-    
+        while True:
+            self.show_menu()
+            choice = self.input_number("선택: ", 1, len(self.MENU_ITEMS))
+            print()
+            _, method_name = self.MENU_ITEMS[choice - 1]
+            if method_name is None:
+                self.exit_game()
+                break
+            action = getattr(self, method_name, None)
+            if action is None:
+                print("🚧 아직 준비 중인 기능입니다.")
+                continue
+            action()
+
+    def show_menu(self):
+        """메뉴를 출력한다."""
+        print()
+        print(LINE)
+        for number, (name, _) in enumerate(self.MENU_ITEMS, start=1):
+            print(f"{number}. {name}")
+        print(LINE)
+
+    def exit_game(self):
+        """저장 후 종료 인사를 출력한다."""
+        if self.save():
+            print("💾 데이터를 저장했습니다.")
+        print("👋 게임을 종료합니다. 다음에 또 만나요!")
+
+    # ==================================================
+    # 입력 처리 (공통 입력/예외 처리 기준)
+    # ==================================================
+    def input_text(self, prompt, allow_empty=False):
+        """문자열을 입력받는다. 앞뒤 공백을 제거하고, 빈 입력이면 다시 받는다."""
+        while True:
+            text = input(prompt).strip()
+            if text or allow_empty:
+                return text
+            print("⚠️ 빈 값은 입력할 수 없습니다. 다시 입력하세요.")
+
+    def input_number(self, prompt, min_value, max_value):
+        """min_value~max_value 범위의 정수를 입력받는다. 잘못된 입력이면 다시 받는다."""
+        while True:
+            text = input(prompt).strip()
+            if not text:
+                print(f"⚠️ 입력이 비어 있습니다. {min_value}-{max_value} 사이의 숫자를 입력하세요.")
+                continue
+            try:
+                number = int(text)
+            except ValueError:
+                print(f"⚠️ 잘못된 입력입니다. {min_value}-{max_value} 사이의 숫자를 입력하세요.")
+                continue
+            if not min_value <= number <= max_value:
+                print(f"⚠️ 잘못된 입력입니다. {min_value}-{max_value} 사이의 숫자를 입력하세요.")
+                continue
+            return number
+
+    def input_yes_no(self, prompt):
+        """y/n을 입력받아 True/False로 반환한다."""
+        while True:
+            text = input(prompt).strip().lower()
+            if text in ("y", "yes", "예", "ㅇ"):
+                return True
+            if text in ("n", "no", "아니오", "ㄴ"):
+                return False
+            print("⚠️ y 또는 n을 입력하세요.")
     # ==================================================
     # 파일 저장 / 불러오기 (state.json)
     # ==================================================
